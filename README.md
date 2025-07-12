@@ -157,24 +157,3 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 **Note**: This portfolio is inspired by modern web design trends and implements best practices for Flutter web development. The design is responsive and optimized for both performance and user experience.
 // flutter build web --release --base-href="/portfolio/"
-
-deploy.yml
-name: Deploy to GitHub Pages
-on:
-push:
-branches: [ main ]
-jobs:
-build:
-runs-on: ubuntu-latest
-steps:
-- uses: actions/checkout@v3
-- uses: subosito/flutter-action@v2
-with:
-channel: stable
-- run: flutter config --enable-web
-- run: flutter pub get
-- run: flutter build web --release --base-href=/<repository-name>/
-- uses: peaceiris/actions-gh-pages@v3
-with:
-github_token: ${{ secrets.GITHUB_TOKEN }}
-publish_dir: build/web

@@ -31,8 +31,152 @@
 
   <title>Portfolio</title>
   <link rel="manifest" href="manifest.json">
+  
+  <style>
+    /* Loading screen styles */
+    #loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0F0F23 0%, #1A1A2E 50%, #16213E 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease-out;
+    }
+    
+    #loading.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .loader {
+      width: 180px;
+      height: 80px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .circle {
+       width: 12px;
+       height: 12px;
+       background: white;
+       border-radius: 50%;
+       margin: 0 6px;
+       animation: bounce 0.8s ease-in-out infinite;
+     }
+     
+     .circle:nth-child(2) {
+       animation-delay: 0.15s;
+     }
+     
+     .circle:nth-child(3) {
+       animation-delay: 0.3s;
+     }
+     
+     @keyframes bounce {
+       0%, 100% {
+         transform: translateY(0);
+       }
+       50% {
+         transform: translateY(-20px);
+       }
+     }
+    
+    .loading-text {
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 18px;
+      font-weight: 300;
+      letter-spacing: 1px;
+    }
+    
+    /* Hide Flutter app initially */
+    flt-glass-pane {
+      opacity: 0;
+      transition: opacity 0.3s ease-in;
+    }
+    
+    flt-glass-pane.flutter-ready {
+      opacity: 1;
+    }
+  </style>
 </head>
 <body>
+  <!-- Loading screen -->
+  <div id="loading">
+    <div class="loader">
+      <div class="circle"></div>
+      <div class="circle"></div>
+      <div class="circle"></div>
+    </div>
+    <div class="loading-text" style="font-family: 'Montserrat', sans-serif;">Almost there…</div>
+  </div>
+  
+  <script>
+    // Function to hide loading screen when Flutter is ready
+    function hideLoadingScreen() {
+      const loadingElement = document.getElementById('loading');
+      const flutterElement = document.querySelector('flt-glass-pane');
+      
+      if (loadingElement) {
+        loadingElement.classList.add('fade-out');
+        setTimeout(() => {
+          loadingElement.style.display = 'none';
+        }, 500);
+      }
+      
+      if (flutterElement) {
+        flutterElement.classList.add('flutter-ready');
+      }
+    }
+    
+    // Listen for Flutter's first frame
+    window.addEventListener('flutter-first-frame', hideLoadingScreen);
+    
+    // Fallback: Hide loading screen after a maximum time
+    setTimeout(() => {
+      // Check if Flutter elements exist (indicating Flutter has loaded)
+      const flutterElement = document.querySelector('flt-glass-pane') || 
+                           document.querySelector('flt-scene-host') ||
+                           document.querySelector('canvas');
+      
+      if (flutterElement || window._flutter?.loader) {
+        hideLoadingScreen();
+      }
+    }, 8000); // 8 second fallback
+    
+    // Alternative detection method using MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) { // Element node
+            // Check for Flutter-specific elements
+            if (node.tagName === 'FLT-GLASS-PANE' || 
+                node.tagName === 'FLT-SCENE-HOST' ||
+                node.querySelector('flt-glass-pane') ||
+                node.querySelector('canvas')) {
+              // Wait a bit for Flutter to fully render
+              setTimeout(hideLoadingScreen, 1000);
+              observer.disconnect();
+            }
+          }
+        });
+      });
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  </script>
+  
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
